@@ -8,7 +8,7 @@ This is meant to be an example to build upon.
 
 # Instructions
 
-##Assumptions
+## Assumptions
 
 * The Git project already has a `.tidelift` file with correct `TIDELIFT_ORGANIZATION` and `TIDELIFT_PROJECT` variables set. See the Tidelift [documentation](https://docs.tidelift.com/article/92-dot-tidelift-files) for more on `.tidelift` files.
 * This example is for a Python-based project. You may need to tweak the `image:` yaml key in the configuration based upon your project.
