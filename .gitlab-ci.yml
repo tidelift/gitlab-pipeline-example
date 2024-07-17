@@ -1,12 +1,47 @@
-build-job:
+# Requirements
+#
+# Required variables:
+#
+#  TIDELIFT_API_KEY must be a GitLab CI variable set to your Tidelift API key.
+#
+#  Note: Your Tidelift API key can be used to perform operations in Tidelift,
+#  and should not be exposed to untrusted users. See
+#  https://docs.gitlab.com/ee/ci/variables/#cicd-variable-security for
+#  options for securing environment variables.
+#
+# Optional variables if you do not want to pre-create projects in Tidelift
+# and have not saved a .tidelift file in your project's repository:
+#
+#  TIDELIFT_ORGANIZATION should be a GitLab CI variable set to your Tidelift
+#  organization name.
+#
+#  TIDELIFT_CATALOG should be a GitLab CI variable set to your preferred
+#  catalog name
+
+tidelift-alignment:
+  # Choose an appropriate image for your build environment.
+  # Examples include:
+  #
+  # image: python
+  # image: node:20
+  # image: golang:1.22
   stage: build
-  image: python # other Debian-based images may work, the CLI requires glibc.
-  variables:
-    TIDELIFT_API_KEY: $TIDELIFT_API_KEY_PROTECTED_VARIABLE # this should be kept in a GitLab Protected Variable https://docs.gitlab.com/ee/ci/variables/#create-a-custom-variable-in-the-ui
+  allow_failure: true
   script:
     - echo "Downloading Tidelift CLI"
     - curl https://download.tidelift.com/cli/tidelift -o tidelift
     - echo "Setting permissions"
     - chmod +x tidelift
-    - echo "Runnning alignment and saving to Tidelift"
-    - ./tidelift alignment save --wait
+    - echo "Creating project if necessary"
+    - sh -c "./tidelift projects new $CI_PROJECT_NAME ${TIDELIFT_CATALOG:+--catalog $TIDELIFT_CATALOG} || :"
+    - echo "Running alignment and saving to Tidelift"
+    - sh -c "./tidelift alignment save --revision $CI_COMMIT_SHA --project $CI_PROJECT_NAME ${TIDELIFT_CATALOG:+--catalog $TIDELIFT_CATALOG} --wait"
+
+tidelift-code-quality:
+  script: >
+    curl -fH "Authorization: Bearer $TIDELIFT_API_KEY" https://api.tidelift.com/external-api/v1/catalog/$TIDELIFT_ORGANIZATION/$CI_PROJECT_NAME/alignments/$CI_COMMIT_SHA/gitlab-quality-report > gl-code-quality-report.json
+  artifacts:
+    when: always
+    expire_in: 4 days
+    reports:
+      codequality: gl-code-quality-report.json
