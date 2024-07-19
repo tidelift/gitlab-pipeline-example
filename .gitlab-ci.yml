@@ -41,7 +41,6 @@ tidelift-code-quality:
   script: >
     curl -fH "Authorization: Bearer $TIDELIFT_API_KEY" https://api.tidelift.com/external-api/v1/catalog/$TIDELIFT_ORGANIZATION/$CI_PROJECT_NAME/alignments/$CI_COMMIT_SHA/gitlab-quality-report > gl-code-quality-report.json
   artifacts:
-    when: always
     expire_in: 4 days
     reports:
       codequality: gl-code-quality-report.json
